@@ -8,50 +8,18 @@ Created on Wed Nov 14 08:50:30 2018
 
 import h5py
 import numpy as np
-import os
-
-   
-#%% GET ALL DATA FILES
-fileDirectory = os.listdir("data/")
-
-f = []
-
-count = 0
-for files in fileDirectory:
-    
-    # Make sure all file type  are .h5 files 
-    if( files[-3:] == '.h5' ):
-        f = np.append(f, 'data/' + files)
-        count = count + 1
-  
+import my_functions as my_f
 
 
-#%%
-with h5py.File(f[1], 'r') as hdf:
-    ls = list(hdf.keys())
-    
-    
-    ## Get all data sets of the HDF5 File
-    datasets = list() 
-    for dataset in ls:
-        print(dataset)
-        data = np.array(hdf.get(dataset))
-        
-        datasets.append(data)
-        
-    
-    
-    shape = datasets[0].shape
-    for i in range(len(datasets)):
-        
-        ## check if all data sets in the list datasets have the same dimension
-        if(datasets[i].shape != shape):
-            print("Error: The dataset in data set list don't have the same shape.")
-            # return(0)
-    
+def preprocess(HDF5_File):
+    [ls, datasets] = my_f.loadHDF5_File( HDF5_File )
+            
+    correctDim = 24*60*60
+    for i in range( len(datasets) ):
+            
         # check if there are obervation 24*60*60 = 86400
-        if(datasets[i].shape[0] != 86400):
-            numOfMissingValues = 86400 - datasets[i].shape[0]
+        if(datasets[i].shape[0] != correctDim):
+            numOfMissingValues = correctDim - datasets[i].shape[0]
             
             # Handle the missing data by creating a vector with same length 
             # as the missing data where the value is the mean of next 15 minutes
@@ -61,3 +29,53 @@ with h5py.File(f[1], 'r') as hdf:
             
             # Concantenate the ArtificalVal onto the datasets
             datasets[i] = np.concatenate((ArtificalVal, datasets[i]), axis=0)
+    return(ls, datasets)
+
+
+
+
+#%% 
+"""
+Get all the HDF5 summary data file and preprocess them to make sure they all
+have 24*60*60 = 86400 measurement. 
+"""
+
+f = np.sort(my_f.All_HDF5("data/"))
+
+for i in range(len(f)):
+    [ls, datasets] = preprocess( f[i] )
+    print(datasets[1].shape)
+    filename = "preprocced_data/" + f[i][-13:]
+    my_f.createHDF5(filename, ls, datasets)
+
+
+#%%
+    
+preproccedFiles = np.sort( my_f.All_HDF5("preprocced_data/") )
+
+
+[ls, datasets] = my_f.loadHDF5_File( preproccedFiles[0] )
+datasetList = []
+for keys in ls:
+    datasetList.append( np.array(()) )
+
+    
+for i in range( len(preproccedFiles) ):
+    # Load file number i
+    [ls, datasets] = my_f.loadHDF5_File( preproccedFiles[i] )
+    for j in range( len( datasets) ):
+        
+
+        datasetList[j] = np.append( datasetList[j],  datasets[j] )
+        
+    print( round(((i+1)/len(preproccedFiles))*100, 2), "% completed")
+
+my_f.createHDF5("November.h5", ls, datasetList)
+
+
+
+
+
+
+    
+    

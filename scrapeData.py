@@ -4,7 +4,12 @@
 Created on Fri Nov  2 12:26:02 2018
 
 @author: MikkelGronning
+
+
+This file get all the summary files from BLOND dataset.
 """
+
+
 
 import requests
 
