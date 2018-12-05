@@ -17,7 +17,7 @@ def find_nearest(array, value):
     return array[idx]
 
 
-def DBSACN_Clusters(distanceMat):
+def DBSACN_Clusters(distanceMat, dataset):
     disMatSorted = np.sort(distanceMat[:,0])
     n = len(distanceMat[:,0])
     
@@ -28,7 +28,7 @@ def DBSACN_Clusters(distanceMat):
     val = find_nearest(slope, 0.01)
     minSamples = np.floor(np.log(len(datasets[0])))
     
-    X = datasets[0].reshape(-1, 1)
+    X = dataset.reshape(-1, 1)
     clustering = DBSCAN(eps = val, min_samples=minSamples, metric='euclidean').fit(X)
     
     Clusters = clustering.labels_
@@ -44,7 +44,7 @@ def DBSACN_Clusters(distanceMat):
 HDF5_Files = np.sort(my_f.All_HDF5("preprocced_data/"))
 
 
-for i in range(1):
+for i in range(0,30):
     
     [ls, datasets] = my_f.loadHDF5_File(HDF5_Files[i])
 
@@ -55,17 +55,24 @@ for i in range(1):
     clusters = []
     for j in range(3,6):
         
+        print(ls[j])
         [disInd, disMat] = my_f.KNNTimeSeries(X=datasets[j], k=1, MinToCompare=30, progress=False)
         
-        clusters.append(DBSACN_Clusters(disMat))
+        clusters.append(DBSACN_Clusters( disMat,  datasets[j]*230 ))
         
     name = "clusters/" +  HDF5_Files[i][-13:]    
     my_f.createHDF5(name, ls[3:6], clusters)
     
 #%%
     
-    
-    
+[ls, datasets] = my_f.loadHDF5_File("preprocced_data/2016_11_01.h5")
+
+
+[disInd1, disMat1] = my_f.KNNTimeSeries(datasets[3], k=3, MinToCompare=30, progress=True)   
+#%%
+tmp1 = DBSACN_Clusters( disMat1, datasets[3]*230)
+        
+#%%
     
     
     
