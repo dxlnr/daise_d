@@ -18,16 +18,25 @@ def compute_temporal_locality():
     return 0
 
 
-def event_model_1():
-    return 0
+'''
+    input: case 1,2,3 for the specific Event Model
+'''
+def event_model(case):
 
-def event_model_2():
-    return 0
+    if case == 1:
+        return 0
+    elif case == 2:
+        return 0
+    elif case == 3:
+        return 0
+    else:
+        #Errorexception
 
-def event_model_3():
-    return 0
 
-def model_loss():
+
+
+def model_loss(case,X,u,v):
+
     return 0
 
 
@@ -39,12 +48,19 @@ def model_loss():
         (3) Check Loss(Mi, X, u, v) <= lambda for all u,v until it is satisfied
 '''
 def forward_detection(lambda):
-
+    X = []
+    N = 0
     while True:
-        self.X.append()
+        #self.X.append()
+        X.append(Xn[N])
+
+        for i in range(0, 3):
+            loss = model_loss(i)
 
         if loss <= lambda:
             break
+
+        N = N + 1
 
     return 0
 
@@ -54,8 +70,20 @@ def forward_detection(lambda):
         (2) Update the clustering vector y and the clustering structure
         (3) Check Loss(Mi, X, u, v) <= lambda for all u,v until it is not satisfied
 '''
-def backward_reduction():
-    return 0
+def backward_reduction(X, lambda):
+
+    N = 0
+    while True:
+        #self.X.append()
+        X..pop(0)
+
+        for i in range(0, 3):
+            loss = model_loss(i)
+
+        if loss >= lambda:
+            break
+
+    return X
 
 
 def detection():
