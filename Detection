@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec  6 10:32:33 2018
+
+@author: MikkelGronning
+"""
+import numpy as np
+import my_functions as my_f
+import matplotlib.pyplot as plt
+
+[ls, datasets] = my_f.loadHDF5_File("preprocced_data/2016_11_02.h5")
+
+
+#%%
+
+
+
+u = 33900
+v = 34100
+
+cluster = DBSACN_Clusters(datasets[3][u:v])
+
+plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k') 
+plt.plot(np.arange(u,v), datasets[3][u:v])
+
+plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k') 
+plt.plot(np.arange(u,v), cluster)
+
+
+
+#%%
+
+def lengths(cluster, u, v, diagnostics = False):
+
+    numOfcluster = np.max(np.unique(cluster)) + 1
+    Window = np.zeros((5, numOfcluster))
+    for j in range(0, numOfcluster):
+        tmp = np.where( cluster == j )[0]
+         
+        uWin = tmp[0]
+        vWin = tmp[len(tmp)-1]
+        
+        length = np.sum( cluster == j )
+        temporalLength = vWin - uWin + 1
+        loc = length/temporalLength
+        
+        Window[0,j] = u + uWin # start of cluster j
+        Window[1,j] = u + vWin # end of cluster j
+        Window[2,j] = length
+        Window[3,j] = temporalLength 
+        Window[4,j] = length/temporalLength
+        
+        if diagnostics == True:
+            print(j, length, temporalLength, loc)
+        
+    return(Window)
+
+test = lengths(cluster, u, v, True)
+
+#%%
+## CHECK THE TIME DOMAIN:
+
+# number of clusters 
+numOfCluster = test.shape[1]
+
+startEnd = test[0:2,:]
+
+checkMat = np.zeros((numOfCluster, numOfCluster))
+compare = np.arange((numOfCluster))
+
+for i in range(numOfCluster):
+    
+    Compare = startEnd[1,i]
+    x = np.arange((numOfCluster))
+    x = np.delete(x,i)
+    
+    for j in x:
+        print("compare: ", Compare ) 
+        print("To: ", startEnd[0, compare[j]] )
+#%%
+
+print(test[0,0])
+print(test[1,0])
+print(test[0,1])
+print(test[1,1])
+
+
+
+
+

@@ -17,9 +17,12 @@ def find_nearest(array, value):
     return array[idx]
 
 
-def DBSACN_Clusters(distanceMat):
-    disMatSorted = np.sort(distanceMat[:,0])
-    n = len(distanceMat[:,0])
+def DBSACN_Clusters(data):
+    
+    [disInd, disMat] = my_f.KNNTimeSeries(X=data, k=1, MinToCompare=30, progress=False)
+    
+    disMatSorted = np.sort(disMat[:,0])
+    n = len(disMat[:,0])
     
     slope = ( disMatSorted[1:n] - disMatSorted[0:(n-1)]  )  * n
     
@@ -28,7 +31,7 @@ def DBSACN_Clusters(distanceMat):
     val = find_nearest(slope, 0.01)
     minSamples = np.floor(np.log(len(datasets[0])))
     
-    X = datasets[0].reshape(-1, 1)
+    X = data.reshape(-1, 1)
     clustering = DBSCAN(eps = val, min_samples=minSamples, metric='euclidean').fit(X)
     
     Clusters = clustering.labels_
@@ -44,7 +47,7 @@ def DBSACN_Clusters(distanceMat):
 HDF5_Files = np.sort(my_f.All_HDF5("preprocced_data/"))
 
 
-for i in range(1):
+for i in range(0,3):
     
     [ls, datasets] = my_f.loadHDF5_File(HDF5_Files[i])
 
@@ -55,104 +58,11 @@ for i in range(1):
     clusters = []
     for j in range(3,6):
         
+        print(ls[j])
         [disInd, disMat] = my_f.KNNTimeSeries(X=datasets[j], k=1, MinToCompare=30, progress=False)
         
-        clusters.append(DBSACN_Clusters(disMat))
+        clusters.append(DBSACN_Clusters( disMat,  datasets[j] ))
         
     name = "clusters/" +  HDF5_Files[i][-13:]    
-    my_f.createHDF5(name, ls[3:6], clusters)
+    my_f.createHDF5(name, ls[0:3], clusters)
     
-#%%
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-        
-[ls, datasets] = my_f.loadHDF5_File("preprocced_data/2016_11_01.h5")
-[disInd, disMat] = my_f.KNNTimeSeries(X=datasets[3], k=3, MinToCompare=100, progress=True)
-
-#%%
-plt.figure(num=None, figsize=(10, 6), dpi=80, facecolor='w', edgecolor='k') 
-plt.plot( datasets[3])
-
-plt.figure(num=None, figsize=(10, 6), dpi=80, facecolor='w', edgecolor='k') 
-plt.plot( abs(np.arange(len(datasets[1])) - disInd[:,0]))
-
-
-plt.figure(num=None, figsize=(10, 6), dpi=80, facecolor='w', edgecolor='k') 
-plt.plot(disMat[:,0])
-
-#%%
-
-
-
-
-
-#%%
-
-## calculating the slope between points with equation (y2-y1) / (x2-x1) 
-## as we are working with a time series (x2-x1)=1 this make the distance natually big
-## thus we penatilize the x axis with MinToCompare.
-## sorting the closest neighbor of disMat in ascending order:
-n = len(disMat[:,0])
-disMatSorted = np.sort(disMat[:,0])
-
-n = disMatSorted.shape[0]
-slope = ( disMatSorted[1:n] - disMatSorted[0:(n-1)]  )  * n
-
-# Using a threshold value of 0.01% so that the slope has a slope of 1% difference
-# is an optimal Eps value 
-val = find_nearest(slope, 0.001)
-criticalIndex = np.where(slope == val)[0] - 1 # we are looking for index before
-
-
-
-
-divisor = np.max(disMatSorted)
-epsVal = disMatSorted[criticalIndex][0]
-
-
-plt.plot( np.log( disMatSorted ) )
-plt.plot(criticalIndex, np.log(disMatSorted[criticalIndex]), 'r+')
-plt.ylabel("log(k-distances)")
-plt.grid(True)
-plt.show()
-
-plt.plot(disMatSorted)
-plt.ylabel("k-distances")
-plt.plot(criticalIndex, disMatSorted[criticalIndex], 'r+')
-plt.grid(True)
-plt.show()
-
-
-
-#%%
-minSamples = np.floor(np.log(len(datasets[0])))
-
-X = datasets[0].reshape(-1, 1)
-
-
-clustering = DBSCAN(eps = val/4, min_samples=minSamples, metric='euclidean').fit(X)
-print(clustering.labels_)
-print(np.unique(clustering.labels_))
-print(clustering )
-
-
-#%%
-plt.figure(num=None, figsize=(10, 6), dpi=80, facecolor='w', edgecolor='k') 
-plt.plot(clustering.labels_)
-#%%
-plt.figure(num=None, figsize=(10, 6), dpi=80, facecolor='w', edgecolor='k') 
-plt.plot(X)
-#%%
-plt.figure(num=None, figsize=(10, 6), dpi=80, facecolor='w', edgecolor='k') 
-plt.plot( datasets[3][60:120])
-
-#%%
