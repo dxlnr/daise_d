@@ -9,30 +9,11 @@ import numpy as np
 import my_functions as my_f
 import matplotlib.pyplot as plt
 
-[ls, datasets] = my_f.loadHDF5_File("preprocced_data/2016_11_02.h5")
 
 
-#%%
+"""
 
-
-
-u = 33800
-v = 34100
-
-cluster = DBSACN_Clusters(datasets[3][u:v])
-
-plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k') 
-plt.plot(np.arange(u,v), datasets[3][u:v])
-
-
-
-plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k') 
-plt.plot(np.arange(u,v), cluster)
-
-
-
-#%%
-
+"""
 def lengths(cluster, u, v, diagnostics = False):
 
     numOfcluster = np.max(np.unique(cluster)) + 1
@@ -49,7 +30,7 @@ def lengths(cluster, u, v, diagnostics = False):
         
         lengthMatrix[0,j] = u + uWin # start of cluster j
         lengthMatrix[1,j] = u + vWin # end of cluster j
-        lengthMatrix[2,j] = length
+        lengthMatrix[2,j] = length   # the cardinality
         lengthMatrix[3,j] = temporalLength 
         lengthMatrix[4,j] = length/temporalLength
         
@@ -57,13 +38,25 @@ def lengths(cluster, u, v, diagnostics = False):
             print(j, length, temporalLength, loc)
         
     return(lengthMatrix)
-
-def timeOverlap(WindowMat):
+###############################################################################
+    
+"""
+Function Description:
+    Check a seqeunce of samples X if model conditions are furfilled. If they
+    are it returns a matrix N x N (where N represents the number of clusters)
+    The value of the matrix are booleans and state if condindations are valid
+    between two clusters. 
+        If No = 0
+        If yes = 1
+"""
+def eventModel(WindowMat, epsilon=0.25):
 
     # number of clusters 
     numOfCluster = WindowMat.shape[1]
     
-    startEnd = WindowMat[0:(numOfCluster-1), :]
+    # Get the start and the end of clusters.
+    # I.e. the the first two row of window matrix.
+    startEnd = WindowMat[0:2, :]
     
     checkMat = np.zeros((numOfCluster, numOfCluster))
     compareVec = np.arange((numOfCluster))
@@ -89,10 +82,11 @@ def timeOverlap(WindowMat):
                 
                 if val > compareval:
                     checkMat[i,j] = 1
-    
+        
+        
+        checkMat = HighTempporalLocality(checkMat, WindowMat, epsilon)
     return(checkMat)   
-    
-#%%
+###############################################################################
 
 def HighTempporalLocality(checkMat, lengthMatrix, epsilon = 0.25):
     
@@ -104,49 +98,100 @@ def HighTempporalLocality(checkMat, lengthMatrix, epsilon = 0.25):
             checkMat[i,:] = 0
             
     return checkMat
+###############################################################################
+
+"""
+
+"""
+def eventInterval(WindowMat, checkMat):
     
-test = lengths(cluster, u, v, False)
-
-checkMat = timeOverlap(test)       
-Overlap = HighTempporalLocality(checkMat, test)
-
-
+    if np.sum(checkMat) == 0:
+        print("The CheckMat dosen't contain to clusters which lives up to the model")
+        return -1
     
-
-
-
-
-
-           
+    
+    if np.sum(checkMat) != 0:
+        # The dimension of the checkMat used to loop trhough the values:
+        l = checkMat.shape[0]
+        
+        # Rows of the checkMat matrix
+        for i in range(l):
+            
+            # Colums of CheckMat Matrix
+            for j in range(l):
+                if(checkMat[i,j]==1):
+                    
+                    # The start of event interval 
+                    if i < j:
+                        print("small value")
+                        print(i,j)
+                        eventBegining = WindowMat[1,i]
+                    
+                    # The end of event interval 
+                    if i > j:
+                        eventEnd = WindowMat[0,i]
+        
+        eventInterval = np.array((eventBegining, eventEnd))
+    
+        return(eventInterval)
+###############################################################################
 #%%
 
-print(test[0,0])
-print(test[1,0])
-print(test[0,1])
-print(test[1,1])
+[ls, datasets] = my_f.loadHDF5_File("preprocced_data/2016_11_02.h5")
+u = 33800
+v = 34100
 
 
-if i < j:   
-            val = compareVec[ x[j] ]  
-            
-            if Compare > val:
-                checkMat[i,j] = 0
-            
-            if Compare < val:
-                checkMat[i,j] = 1
-                
-        # Diagnonal element are always True
-        if i == j:
-            checkMat[i,j] = 1
+data = datasets[3][u:v]
+cluster = my_f.DBSACN_Clusters(data, 30, 0.01)
+
+plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k') 
+plt.plot(np.arange(u,v), data)
+
+
+
+plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k') 
+plt.plot(np.arange(u,v), cluster)
+
+
+WindowMat = lengths(cluster, u, v, False)
+
+if WindowMat.shape[1] > 1:
+    checkMat = eventModel(WindowMat) 
+     
+    if np.sum(checkMat) > 0:
+        print("event detected")
+        event = eventInterval(WindowMat, checkMat)
+    
+    if np.sum(checkMat) == 0:
+        print("no event")
+        v = v + 30
+
+#%%
+[ls, datasets] = my_f.loadHDF5_File("preprocced_data/2016_11_02.h5")
+
+data = datasets[3]
+n = len(data)
+
+windowsize = 150
+
+u = 0
+v = windowsize
+while v < n:
+    
+    u = u + windowsize
+    v = v + windowsize
+    
+    if u == 0:
+        dataWin = data[u:v]
         
-        if i > j:
-            val = compareVec[ x[j] ]  
-            
-            if Compare < val:
-                checkMat[i,j] = 0
-                
-            if Compare > val:
-                checkMat[i,j] = 1
+    else:
+        dataWin = data[(u-5):v]
+    
+    if v > n:
+        dataWin = data[(u-5):n]
 
+    
+    cluster = my_f.DBSACN_Clusters(dataWin, 30, 0.01)
 
 

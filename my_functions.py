@@ -139,8 +139,8 @@ def KNNTimeSeries(X, k, MinToCompare, progress = False):
             if i == n-1:
                 print("100.00 %")
         
-        # Find the 900 values before index i 
-        # if i < 900 when pick the valeus before
+        # Find the MinToCompare values before index i 
+        # if i < MinToCompare when pick the valeus before
         if i < MinToCompare:
             xbVal = X[ 0 : i ]
             xbIndex = np.arange(0, i)
@@ -177,13 +177,13 @@ def KNNTimeSeries(X, k, MinToCompare, progress = False):
         point = np.array((X[i], i))
         
         # Find the eucldean distance to the index and and xD
-        dis = np.column_stack((np.sum(( xD - point )**2, axis=1), xD[:,1]))
+        dis = np.column_stack(( np.sum( np.sqrt(( xD - point )**2), axis=1), xD[:,1]))
+        
         closestIndex = dis[:,1][np.argsort(dis[:,0])[:k]]
         closestVal = dis[:,0 ][np.argsort(dis[:,0])[:k]]
         
         disInd[i,:] = closestIndex
         disMat[i,:] = closestVal
-
     return(disInd, disMat)
     
 
@@ -203,11 +203,11 @@ def find_nearest(array, value):
 """
 
 """
-def DBSACN_Clusters(data, MinToCompare):
+def DBSACN_Clusters(data, MinToCompare, delta = 0.01, diagnostics = False):
     
     minSamples = int( np.floor(np.log(len(data))) )
     
-    [disInd, disMat] = KNNTimeSeries(X=data, k=minSamples, MinToCompare=30, progress=False)
+    [disInd, disMat] = KNNTimeSeries(X=data, k=minSamples, MinToCompare=10, progress=False)
     
     disMatSorted = np.sort(disMat[:, minSamples-1 ])
     n = len(disMat[:,0])
@@ -216,7 +216,7 @@ def DBSACN_Clusters(data, MinToCompare):
     
     # Using a threshold value of 0.01% so that the slope has a slope of 1% difference
     # is an optimal Eps value. 
-    val = find_nearest(slope, 0.01)
+    val = find_nearest(slope, delta)
     
     # Reshape data for input to DBSCAN 
     X = data.reshape(-1, 1)
@@ -224,9 +224,10 @@ def DBSACN_Clusters(data, MinToCompare):
     
     Clusters = clustering.labels_
     
-    print(val)
-    print(minSamples)
-    print(np.unique(clustering.labels_))
+    if diagnostics == True:
+        print(val)
+        print(minSamples)
+        print(np.unique(clustering.labels_))
     
     return(Clusters)
 ###############################################################################

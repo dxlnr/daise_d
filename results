@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Dec 12 12:37:23 2018
+
+@author: MikkelGronning
+"""
+
+import scipy.io as sio
+import numpy as np
+
+
+mat_contents = sio.loadmat('eventList_10_11_12_2016_datenum.mat')
+
+events = mat_contents['eventList']
+
+#%%
+
+def timeStringToTuple(date):
+    time_tuple = (int(date[0:4]), int(date[5:7]), int(date[8:10]))
+    
+    return(time_tuple)
+
+
+
+def dateToint(date):
+    start = '2016-10-01'
+    startDate = timeStringToTuple(start)
+
+    tmp = timeStringToTuple(date)
+    
+    MonthDiff = tmp[1] - startDate[1]
+    DayDiff   = tmp[2] - startDate[2]
+    
+    # in case the date is okotober
+    if MonthDiff == 0:
+        diff = DayDiff
+        # print("september")
+    
+    # in case the date is different from oktober.
+    if MonthDiff != 0:
+        
+        # November
+        if tmp[1] == 11:
+            diff = tmp[2] + 31 - startDate[2]
+            # print("november")
+            
+        # December
+        if tmp[1] == 12:
+            diff = tmp[2] + 31+30 - startDate[2]
+            # print("December")
+
+    return diff
+
+def medalToOffie(mN):
+    # mN: Meal number
+    
+    # Office 1:
+    of1 = np.array((1, 2, 3, 7, 12))
+    if mN in of1:
+        return(1)
+    
+    # Office 2: 
+    of2 = np.array((6, 10, 11, 13, 14))
+    if mN in of2:
+        return(2)
+        
+    # Office 3
+    of3 = np.array((4, 5, 8, 9, 15))
+    if mN in of3:
+        return(3)
+    
+#%% 
+
+datetest = list(events[0,663])[2][0]
+print(datetest)
+dateToint(datetest)
+
+#%%
+evenMat = np.zeros((11722,3))
+for i in range(11722):
+    tmp = list(events[0,i])
+    
+    evenMat[i,0] = tmp[0][0]
+    evenMat[i,1] = medalToOffie(tmp[1][0][0])
+    evenMat[i,2] = dateToint(tmp[2][0])

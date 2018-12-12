@@ -45,7 +45,6 @@ plt.xticks(ticks, timeTic)
 plt.ylabel('Current [A]')
 plt.xlabel('Time')
 
-
 plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k') 
 plt.plot(disMatSorted)
 plt.plot(x, disMatSorted[x],'r+')
@@ -53,19 +52,3 @@ plt.ylabel('K distances')
 plt.xlabel('Object')
 
 #%%
-u = 33000
-v = 33400
-data = datasets[3][u:v]
-
-tmp = my_f.DBSACN_Clusters(data, MinToCompare = 30)
- 
-
-plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k') 
-plt.plot(np.arange(u,v), data)
-plt.ylabel('Current [A]')
-plt.xlabel('Time')
-
-plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k')
-plt.plot(np.arange(u,v),tmp)
- 
-
