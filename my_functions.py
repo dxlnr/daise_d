@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import h5py
 import os
-
+from sklearn.cluster import DBSCAN
 
 """
 
@@ -185,3 +185,58 @@ def KNNTimeSeries(X, k, MinToCompare, progress = False):
         disMat[i,:] = closestVal
 
     return(disInd, disMat)
+    
+
+
+
+"""
+
+"""
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return array[idx]
+###############################################################################
+
+
+
+"""
+
+"""
+def DBSACN_Clusters(data, MinToCompare):
+    
+    minSamples = int( np.floor(np.log(len(data))) )
+    
+    [disInd, disMat] = KNNTimeSeries(X=data, k=minSamples, MinToCompare=30, progress=False)
+    
+    disMatSorted = np.sort(disMat[:, minSamples-1 ])
+    n = len(disMat[:,0])
+    
+    slope = ( disMatSorted[1:n] - disMatSorted[0:(n-1)]  )  * n
+    
+    # Using a threshold value of 0.01% so that the slope has a slope of 1% difference
+    # is an optimal Eps value. 
+    val = find_nearest(slope, 0.01)
+    
+    # Reshape data for input to DBSCAN 
+    X = data.reshape(-1, 1)
+    clustering = DBSCAN(eps = val, min_samples=minSamples, metric='euclidean').fit(X)
+    
+    Clusters = clustering.labels_
+    
+    print(val)
+    print(minSamples)
+    print(np.unique(clustering.labels_))
+    
+    return(Clusters)
+###############################################################################
+
+
+
+
+
+
+
+
+
+
