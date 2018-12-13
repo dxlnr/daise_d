@@ -8,12 +8,8 @@ Created on Wed Dec 12 12:37:23 2018
 
 from scipy.io import loadmat
 import numpy as np
+import my_functions as my_f
 import pandas as pd
-
-#%%
-mat_contents = sio.loadmat('eventList_10_11_12_2016_datenum.mat')
-
-events = mat_contents['eventList']
 
 #%%
 
@@ -70,72 +66,53 @@ def medalToOffie(mN):
     of3 = np.array((4, 5, 8, 9, 15))
     if mN in of3:
         return(3)
+        
+def timeStampToNum(timeStamp):
+    time = pd.to_datetime(timeStamp-719529, unit='D').strftime('%H:%M:%S')
+    h = int(time[0:2])
+    m = int(time[3:5])
+    s = int(time[6:8])
     
-#%% 
-
-datetest = list(events[0,663])[2][0]
-print(datetest)
-dateToint(datetest)
+    timeinsec = h*60*60+m*60+s
+    return(timeinsec)
 
 #%%
+mat_contents = loadmat('eventList_10_11_12_2016_datenum.mat')
+events = mat_contents['eventList']
+
+
 evenMat = np.zeros((11722,3))
 for i in range(11722):
     tmp = list(events[0,i])
     
-    evenMat[i,0] = tmp[0][0]
-    evenMat[i,1] = medalToOffie(tmp[1][0][0])
-    evenMat[i,2] = dateToint(tmp[2][0])
+    evenMat[i,0] = dateToint(tmp[2][0])
+    evenMat[i,1] = timeStampToNum(float(list(tmp[0])[0]))
+    evenMat[i,2] = medalToOffie(tmp[1][0][0])
     
-#%% 
-events_df = pd.DataFrame( loadmat('eventList_10_11_12_2016_datenum.mat') )
 #%%
-events_df.TimeStamp = events_df.TimeStamp.apply(lambda datenums: pd.to_datetime(datenums-719529, unit='D'))
-
+    
+SortEvenMat = evenMat[evenMat[:,0].argsort()]
 
 #%%
-import numpy as np
-from scipy.io import loadmat  # this is the SciPy module that loads mat-files
-import matplotlib.pyplot as plt
-from datetime import datetime, date, time
-import pandas as pd
-
-mat = loadmat('eventList_10_11_12_2016_datenum.mat')  # load mat-file
-mdata = mat['eventList']  # variable in mat file
-mdtype = mdata.dtype  # dtypes of structures are "unsized objects"
-# * SciPy reads in structures as structured NumPy arrays of dtype object
-# * The size of the array is the size of the structure array, not the number
-#   elements in any particular field. The shape defaults to 2-dimensional.
-# * For convenience make a dictionary of the data using the names from dtypes
-# * Since the structure has only one element, but is 2-D, index it at [0, 0]
-ndata = {n: mdata[n][0, 0] for n in mdtype.names}
-# Reconstruct the columns of the data table from just the time series
-# Use the number of intervals to test if a field is a column or metadata
-columns = [n for n, v in ndata.items() if v.size == ndata['MedalNr']]
-
-# now make a data frame, setting the time stamps as the index
-df = pd.DataFrame(np.concatenate([ndata[c] for c in columns], axis=1),
-                  index=[datetime(*ts) for ts in ndata['MedalNr']],
-                  columns=columns)
+SortedTrueEvents = np.empty((0,3), int) 
 
 
+for i in np.unique(SortEvenMat[:,0]):
+    
+    tmp = SortEvenMat[ SortEvenMat[:,0] == i ]
+    tmp2 = tmp[tmp[:,1].argsort()]
 
+    SortedTrueEvents = np.append(SortedTrueEvents, tmp2, axis=0)  
+    
+    
+#%%
+NowSortedTrueEvents = np.empty((0,3), int) 
+for i in range(31,62):
+    
+    tmp = SortedTrueEvents[SortedTrueEvents[:,0] == i]
+    
+    NowSortedTrueEvents = np.append(NowSortedTrueEvents, tmp, axis=0)  
+#%%
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+tmp = [ NowSortedTrueEvents[:,0], NowSortedTrueEvents[:,1], NowSortedTrueEvents[:,2] ]
+my_f.createHDF5("NovemberSortedTrueEvent.h5", ["Days", "Seconds", "Office"], tmp)

@@ -197,9 +197,9 @@ def detection(data, windowsize, epsilon = 0.25, delta=0.01, MinToCompare = 30, p
 [ls, datasets] = my_f.loadHDF5_File("preprocced_data/2016_11_03.h5")
 #%%
 
-office1 = detection(data = datasets[3], windowsize = 150, epsilon = 0.35, delta=0.001, MinToCompare = 30, progress = True)
-office2 = detection(data = datasets[4], windowsize = 150, epsilon = 0.35, delta=0.001, MinToCompare = 30, progress = True)
-office3 = detection(data = datasets[5], windowsize = 150, epsilon = 0.35, delta=0.001, MinToCompare = 30, progress = True)
+office1 = detection(data = datasets[3], windowsize = 150, epsilon = 0.25, delta=0.01, MinToCompare = 30, progress = True)
+office2 = detection(data = datasets[4], windowsize = 150, epsilon = 0.25, delta=0.01, MinToCompare = 30, progress = True)
+office3 = detection(data = datasets[5], windowsize = 150, epsilon = 0.25, delta=0.01, MinToCompare = 30, progress = True)
 
 
 
