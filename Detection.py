@@ -123,8 +123,6 @@ def eventInterval(WindowMat, checkMat):
                     
                     # The start of event interval 
                     if i < j:
-                        print("small value")
-                        print(i,j)
                         eventBegining = WindowMat[1,i]
                     
                     # The end of event interval 
@@ -135,63 +133,84 @@ def eventInterval(WindowMat, checkMat):
     
         return(eventInterval)
 ###############################################################################
-#%%
-
-[ls, datasets] = my_f.loadHDF5_File("preprocced_data/2016_11_02.h5")
-u = 33800
-v = 34100
-
-
-data = datasets[3][u:v]
-cluster = my_f.DBSACN_Clusters(data, 30, 0.01)
-
-plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k') 
-plt.plot(np.arange(u,v), data)
-
-
-
-plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k') 
-plt.plot(np.arange(u,v), cluster)
-
-
-WindowMat = lengths(cluster, u, v, False)
-
-if WindowMat.shape[1] > 1:
-    checkMat = eventModel(WindowMat) 
-     
-    if np.sum(checkMat) > 0:
-        print("event detected")
-        event = eventInterval(WindowMat, checkMat)
-    
-    if np.sum(checkMat) == 0:
-        print("no event")
-        v = v + 30
-
-#%%
-[ls, datasets] = my_f.loadHDF5_File("preprocced_data/2016_11_02.h5")
-
-data = datasets[3]
-n = len(data)
-
-windowsize = 150
-
-u = 0
-v = windowsize
-while v < n:
-    
-    u = u + windowsize
-    v = v + windowsize
-    
-    if u == 0:
-        dataWin = data[u:v]
         
-    else:
-        dataWin = data[(u-5):v]
+"""
+
+"""       
+def detection(data, windowsize, epsilon = 0.25, delta=0.01, MinToCompare = 30, progress = False):
+    # This is the array where the events will be stored.
+    eventArray = np.empty((0,2), int) 
     
-    if v > n:
-        dataWin = data[(u-5):n]
+    # Used to determine the amount of calculations in the while loop
+    n = len(data)
+    
+    u = 0
+    v = u + windowsize
+    
+    # The next two variables are used to print fo the progress of the
+    # the detection algorithm 
+    prog = n / windowsize # Number of times it will gå thorugh the loop
+    count = 0
+    
+    while v < n:
+        
+        # Display the progress of algorithm
+        if progress == True:
+            count = count + 1
+    
+            if count == int(prog/100):
+                print("{0:.2f} %".format(v/n * 100) )
+                count = 0
+        
+        # Load the approriate data window from the data file
+        if u == 0:
+            dataWin = data[u:v]
+        # Load in the previuos 5 values so there is a little data overlap.
+        else:
+            dataWin = data[(u-5):v]
+        if v > n:
+            dataWin = data[(u-5):n]
+            
+        # Pre cluster the data
+        cluster = my_f.DBSACN_Clusters(dataWin, MinToCompare, delta)
+        # Calucalte the lengths. I.e. Cardinality, Loc 
+        WindowMat = lengths(cluster, u, v, False)
+        
+        # In case there is more than one cluster 
+        if WindowMat.shape[1] > 1:
+            checkMat = eventModel(WindowMat, epsilon) 
+     
+            if np.sum(checkMat) > 0:
+                event = eventInterval(WindowMat, checkMat)
+                eventArray = np.append(eventArray, np.array([event]), axis=0)
+                
+        # Update the the window size to stream in more Data 
+        u = u + windowsize
+        v = v + windowsize
+    
+    return(eventArray)
+###############################################################################
+
+#%%
+[ls, datasets] = my_f.loadHDF5_File("November.h5")
+
+#[ls, datasets] = my_f.loadHDF5_File("preprocced_data/2016_11_02.h5")
+#%%
+
+office1 = detection(data = datasets[3], windowsize = 150, epsilon = 0.25, delta=0.01, MinToCompare = 30, progress = True)
+office2 = detection(data = datasets[4], windowsize = 150, epsilon = 0.25, delta=0.01, MinToCompare = 30, progress = True)
+office3 = detection(data = datasets[5], windowsize = 150, epsilon = 0.25, delta=0.01, MinToCompare = 30, progress = True)
+
+
+
+
+
+
+
+
+
+
 
     
-    cluster = my_f.DBSACN_Clusters(dataWin, 30, 0.01)
-
-
+            
+            

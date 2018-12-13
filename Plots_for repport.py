@@ -52,3 +52,78 @@ plt.ylabel('K distances')
 plt.xlabel('Object')
 
 #%%
+
+[ls, datasets] = my_f.loadHDF5_File("preprocced_data/2016_11_02.h5")
+u = 33800
+v = 34100
+
+
+data = datasets[3][u:v]
+cluster = my_f.DBSACN_Clusters(data, 30, 0.01)
+
+plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k') 
+plt.plot(np.arange(u,v), data)
+
+
+
+plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k') 
+plt.plot(np.arange(u,v), cluster)
+
+
+WindowMat = lengths(cluster, u, v, False)
+
+if WindowMat.shape[1] > 1:
+    checkMat = eventModel(WindowMat) 
+     
+    if np.sum(checkMat) > 0:
+        print("event detected")
+        event = eventInterval(WindowMat, checkMat)
+    
+    if np.sum(checkMat) == 0:
+        print("no event")
+        v = v + 30
+#%%
+[ls, datasets] = my_f.loadHDF5_File("preprocced_data/2016_11_02.h5")
+n = len(data)
+
+data = datasets[3]
+windowsize = 150
+prog = n / windowsize # Number of times it will gå thorugh the loop
+
+u = 0
+
+v = u + windowsize
+
+count = 0
+eventArray = np.empty((0,2), int)
+while v < n:
+    
+    count = count + 1
+    
+    if count == int(prog/100):
+        print("{0:.2f} %".format(v/n * 100) )
+        count = 0
+    
+    u = u + windowsize
+    v = v + windowsize
+    
+    if u == 0:
+        dataWin = data[u:v]
+        
+    else:
+        dataWin = data[(u-5):v]
+    
+    if v > n:
+        dataWin = data[(u-5):n]
+
+    
+    cluster = my_f.DBSACN_Clusters(dataWin, 30, 0.01)
+    WindowMat = lengths(cluster, u, v, False)
+    
+    if WindowMat.shape[1] > 1:
+        checkMat = eventModel(WindowMat) 
+     
+        if np.sum(checkMat) > 0:
+            event = eventInterval(WindowMat, checkMat)
+            eventArray = np.append(eventArray, np.array([event]), axis=0)
+        

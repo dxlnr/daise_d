@@ -6,10 +6,11 @@ Created on Wed Dec 12 12:37:23 2018
 @author: MikkelGronning
 """
 
-import scipy.io as sio
+from scipy.io import loadmat
 import numpy as np
+import pandas as pd
 
-
+#%%
 mat_contents = sio.loadmat('eventList_10_11_12_2016_datenum.mat')
 
 events = mat_contents['eventList']
@@ -84,3 +85,57 @@ for i in range(11722):
     evenMat[i,0] = tmp[0][0]
     evenMat[i,1] = medalToOffie(tmp[1][0][0])
     evenMat[i,2] = dateToint(tmp[2][0])
+    
+#%% 
+events_df = pd.DataFrame( loadmat('eventList_10_11_12_2016_datenum.mat') )
+#%%
+events_df.TimeStamp = events_df.TimeStamp.apply(lambda datenums: pd.to_datetime(datenums-719529, unit='D'))
+
+
+#%%
+import numpy as np
+from scipy.io import loadmat  # this is the SciPy module that loads mat-files
+import matplotlib.pyplot as plt
+from datetime import datetime, date, time
+import pandas as pd
+
+mat = loadmat('eventList_10_11_12_2016_datenum.mat')  # load mat-file
+mdata = mat['eventList']  # variable in mat file
+mdtype = mdata.dtype  # dtypes of structures are "unsized objects"
+# * SciPy reads in structures as structured NumPy arrays of dtype object
+# * The size of the array is the size of the structure array, not the number
+#   elements in any particular field. The shape defaults to 2-dimensional.
+# * For convenience make a dictionary of the data using the names from dtypes
+# * Since the structure has only one element, but is 2-D, index it at [0, 0]
+ndata = {n: mdata[n][0, 0] for n in mdtype.names}
+# Reconstruct the columns of the data table from just the time series
+# Use the number of intervals to test if a field is a column or metadata
+columns = [n for n, v in ndata.items() if v.size == ndata['MedalNr']]
+
+# now make a data frame, setting the time stamps as the index
+df = pd.DataFrame(np.concatenate([ndata[c] for c in columns], axis=1),
+                  index=[datetime(*ts) for ts in ndata['MedalNr']],
+                  columns=columns)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

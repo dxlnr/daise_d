@@ -218,6 +218,11 @@ def DBSACN_Clusters(data, MinToCompare, delta = 0.01, diagnostics = False):
     # is an optimal Eps value. 
     val = find_nearest(slope, delta)
     
+    # Incase val = 0 can happend as there are periods with in data that is just
+    # 300 val average.
+    if val == 0:
+        val = delta
+    
     # Reshape data for input to DBSCAN 
     X = data.reshape(-1, 1)
     clustering = DBSCAN(eps = val, min_samples=minSamples, metric='euclidean').fit(X)
