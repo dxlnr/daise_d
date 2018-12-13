@@ -225,7 +225,7 @@ def DBSACN_Clusters(data, MinToCompare, delta = 0.01, diagnostics = False):
     
     # Reshape data for input to DBSCAN 
     X = data.reshape(-1, 1)
-    clustering = DBSCAN(eps = val, min_samples=minSamples, metric='euclidean').fit(X)
+    clustering = DBSCAN(eps = delta, min_samples=minSamples, metric='euclidean').fit(X)
     
     Clusters = clustering.labels_
     

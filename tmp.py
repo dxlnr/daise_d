@@ -37,7 +37,35 @@ def findEventTime(day, office):
     return EventTime
 
     
+#%%
+def calculateResults(trueEvent, result):
+    numOfevent = len(trueEvent)
+    NumOfDeteted = len(result)
+    
+    gap = 10
+    tp = 0
+    fp = 0
+    fn = 0
+    tn = 0
+    
+    for event in trueEvent:
+        
+        for j in range(result.shape[0]):
+            
+            if result[j,0]-gap <= event <= result[j,1]+gap:
+                tp = tp + 1
+        
+        
+    fp = nDet - fp          
+    fn = nTrue - tp
+    
+    precision = round(tp/(tp+fp),3)
+    return(numOfevent, NumOfDeteted, tp, fp, fn, precision)
 
-print(seconds[ findEventTime(32,1) ])
+trueEvent = seconds[ findEventTime(44,2) ]
 
-office1
+#%%
+
+trueEvent = seconds[findEventTime(32, 1)]
+
+calculateResults(trueEvent, office1)
