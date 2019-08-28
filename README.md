@@ -9,7 +9,7 @@ datasets, that are used to test, verify, and benchmark possible
 solutions to tackle the tasks of NILM, it is much more easier to get
 a deeper understanding of the power consumption process in order
 to reduce the waste of energy.
-This code presents a reimplementation of the state-of-the-art
+This code presents a reimplementation of the state-of-the-art
 event detection algorithm Sequential Clustering-based Event Detection
 For Non-Intrusive Load Monitoring. The algorithm will be applied
 to a new Non-Intrusive Load Monitoring (NILM) dataset, called
@@ -22,4 +22,5 @@ events happening based on a certain event model. This method
 presents the results of the algorithm for the BLOND in comparison
 to the BLUED dataset.
 
-# For further information read the paper "Groenning, Illner - DAISE - Reimplementing a State-Of-The-Art Algorithm"
+
+For further information read the paper "Groenning, Illner - DAISE - Reimplementing a State-Of-The-Art Algorithm"
